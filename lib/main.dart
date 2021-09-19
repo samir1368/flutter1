@@ -1,114 +1,96 @@
+import 'dart:async';
+import 'dart:convert';
 
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_app1/persistent_tabbar/main_persistent_tabbar.dart';
+import 'package:http/http.dart' as http;
 
+import 'ClassModel.dart';
 
-void main() => runApp(OrginalApp());
-Color selection = Colors.blue[900]!;
-class OrginalApp extends StatelessWidget{
+Future<List<Datum>> fetchPhotos(http.Client client) async {
+  final response = await client
+      .get(
+      Uri.parse('http://37.156.145.212:1001/api/Series/filter?MaxResult=50'));
+
+//  return parsed["data"];
+  return compute(parsePhotos, response.body);
+}
+
+// A function that converts a response body into a List<Photo>.
+List<Datum> parsePhotos(String responseBody) {
+  final parsed = jsonDecode(responseBody).cast<Map<String, dynamic>>();
+  print(parsed["data"]);
+  print("helllooooo");
+ /// final parsed = jsonDecode(response.body).cast<Map<String, dynamic>>();
+  return parsed["data"];
+ // return DatummeFromJson(responseBody);
+}
+
+void main() => runApp(const MyApp());
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
+    const appTitle = 'Isolate Demo';
 
-    theme: ThemeData(
-      // Define the default brightness and colors.
-      scaffoldBackgroundColor: selection,
-      primaryColor:selection,
-      accentColor: selection,
-
-      // Define the default font family.
-      fontFamily: 'Georgia',
-
-      // Define the default TextTheme. Use this to specify the default
-      // text styling for headlines, titles, bodies of text, and more.
-      textTheme: const TextTheme(
-        headline1: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
-        headline6: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
-        bodyText2: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
-      ),
-    ),
-
-    home: MyApp(),
-  );
-  }
-
-}
-class MyApp extends StatefulWidget {
-  @override
-  MyAppState createState() {
-    return MyAppState();
-  }
-}
-
-class MyAppState extends State<MyApp> {
-
-  onButtonTap(Widget page)  {
-    Navigator.push(this.context, MaterialPageRoute(builder: (BuildContext context) => page));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
-    return Scaffold(
-      body:
-      InkWell(
-        child:new Center(
-          child:
-          MyMenuButton(
-            title: "ورود",
-            actionTap: () {
-              onButtonTap(
-                MainPersistentTabBar(),
-              );
-            },
-          ),
-          //tapableText('Hello', () { print('I have been tapped :)'); }),
-       // ),
-       /* Ink(height: double.infinity, width: double.infinity, color: selection),
-        new Text("Hello, World!"),*/
-
-      )
-      )
+    return const MaterialApp(
+      title: appTitle,
+      home: MyHomePage(title: appTitle),
     );
-  /*  return new Container(
-        body:
-        InkWell(
-          onTap: () {}, // Handle your callback
-          child:
-          Ink(height: double.infinity, width: double.infinity, color: selection),
-
-
-        )
-    *//*  decoration: new BoxDecoration(color: selection),
-      child: new Center(
-        child: new Text("سلام بزن روش!"),
-    Ink(height: double.infinity, width: double.infinity, color: selection),
-      ),*//*
-    );*/
   }
 }
 
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
-class MyMenuButton extends StatelessWidget {
   final String title;
-  final VoidCallback actionTap;
-  MyMenuButton({required this.title, required this.actionTap});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(15.0),
-      child: MaterialButton(
-        height: 60,
-        color: Theme.of(context).primaryColor,
-        textColor: Colors.white,
-        child: new Text(title),
-        onPressed: actionTap,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
       ),
+      body: FutureBuilder<List<Datum>>(
+        future: fetchPhotos(http.Client()),
+        builder: (context, snapshot) {
+
+          if (snapshot.hasError) {
+            return const Center(
+
+              child: Text("samiara"),
+            );
+          } else if (snapshot.hasData) {
+            return PhotosList(photos: snapshot.data!);
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      ),
+    );
+  }
+}
+
+class PhotosList extends StatelessWidget {
+  const PhotosList({Key? key, required this.photos}) : super(key: key);
+
+  final List<Datum> photos;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+      ),
+      itemCount: photos.length,
+      itemBuilder: (context, index) {
+        return Image.network(photos[index].thumbnail);
+      //  return Image.network(photos.data.);
+      },
     );
   }
 }
