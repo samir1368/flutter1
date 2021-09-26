@@ -21,6 +21,10 @@ dependencies:
   circle_wheel_scroll: ^0.0.1+1
   cached_network_image: ^2.0.0
 
+  flutter_spinkit: ^5.1.0
+  fluttertoast: ^8.0.8
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
