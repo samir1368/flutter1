@@ -1,0 +1,33 @@
+workflows:
+  my-workflow:
+    name: My workflow name
+    labels:
+      - QA
+      - ${TENANT_NAME}
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: '*'
+          include: true
+          source: true
+      cancel_previous_builds: false
+    scripts:
+      - name: Build for iOS         # Name of the section
+        script: flutter build ios   # The script(s) to be run in that section
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      email:
+        recipients:
+          - samira.b68@gmail.com
+      scripts:
+        - echo 'Post-publish script'
