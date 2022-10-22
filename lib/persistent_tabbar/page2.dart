@@ -46,8 +46,8 @@ class _Page2State extends State<Page2>
               return ListTile(
                 contentPadding: EdgeInsets.all(10.0),
                 title: Text(data['title']),
-                trailing: Image.network(
-                  data['thumbnailUrl'],
+                trailing: Image.asset(
+                 "assets/image/default_img.png",
                   height: 20.0,
                   width: 20.0,
                 ),
